@@ -129,23 +129,11 @@
     setTimeout(function () { clearInterval(interval); }, 15000);
   }
 
-  /* Calendar/WhatsApp buttons are placeholders until real links are added.
-     Prevent the default "#" jump-to-top so an unwired button does nothing
-     instead of unexpectedly yanking the page, until it's wired up. */
-  function initPlaceholderLinks() {
-    $$("[data-placeholder]").forEach(function (a) {
-      a.addEventListener("click", function (e) {
-        if (a.getAttribute("href") === "#") e.preventDefault();
-      });
-    });
-  }
-
   function boot() {
     safe(initNav, "initNav");
     safe(initMobileNav, "initMobileNav");
     safe(initReveals, "initReveals");
     safe(initMetodoPath, "initMetodoPath");
-    safe(initPlaceholderLinks, "initPlaceholderLinks");
     document.documentElement.classList.add("is-ready");
   }
 
