@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+/* Identidad visual aprobada de CrespoTrueké */
+@theme inline {
+  --color-cream: #faf8f5; /* Blanco cálido — fondo base */
+  --color-beige: #f2eae1; /* Beige — tarjetas y fondos secundarios */
+  --color-sand: #ebdcc6; /* Arena — bordes y divisores */
+  --color-terracotta: #c86a4d; /* Terracota — único color de acción */
+  --color-olive: #6b7a4a; /* Verde oliva — confirmaciones, impacto positivo */
+  --color-earth: #5b3f2e; /* Marrón tierra — texto principal y títulos */
+  --color-wood: #caa87a; /* Madera natural — acentos decorativos puntuales */
+
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-fraunces);
+}
