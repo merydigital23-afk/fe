@@ -7,8 +7,8 @@ export const metadata: Metadata = {
 
 const pasos = [
   { numero: "1", texto: "Publicá lo que ofrecés o lo que necesitás" },
-  { numero: "2", texto: "Encontrá tu match en Explorar o Descubrir" },
-  { numero: "3", texto: "Coordiná por chat y calificá el intercambio" },
+  { numero: "2", texto: "Encontrá con quién intercambiar" },
+  { numero: "3", texto: "Coordiná el encuentro por chat" },
 ];
 
 export default function OnboardingPage() {
