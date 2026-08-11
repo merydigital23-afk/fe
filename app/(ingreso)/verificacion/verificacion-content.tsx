@@ -16,6 +16,7 @@ function traducirErrorAuth(mensaje: string): string {
 export default function VerificacionContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") ?? "";
+  const confirmError = searchParams.get("error") === "confirmacion";
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -69,6 +70,12 @@ export default function VerificacionContent() {
             )}
           </p>
         </div>
+
+        {confirmError && (
+          <p className="rounded-lg border border-sand bg-beige px-4 py-3 text-sm font-medium text-earth">
+            Ese enlace ya no es válido o venció. Pedí uno nuevo abajo.
+          </p>
+        )}
 
         {status === "sent" && (
           <p className="text-sm font-medium text-olive">
