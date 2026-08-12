@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 function traducirErrorAuth(mensaje: string): string {
@@ -10,15 +10,40 @@ function traducirErrorAuth(mensaje: string): string {
   if (m.includes("rate limit")) {
     return "Ya pediste el reenvío hace poco. Esperá un minuto y probá de nuevo.";
   }
-  return "No pudimos reenviar el correo. Probá de nuevo en un momento.";
+  if (m.includes("expired") || m.includes("invalid")) {
+    return "Ese código no es correcto o ya venció. Pedí uno nuevo abajo.";
+  }
+  return "No pudimos confirmar tu cuenta. Probá de nuevo en un momento.";
 }
 
 export default function VerificacionContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") ?? "";
   const confirmError = searchParams.get("error") === "confirmacion";
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+
+  const [codigo, setCodigo] = useState("");
+  const [status, setStatus] = useState<"idle" | "checking" | "sending" | "sent" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+
+  async function handleConfirmar(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!email || !codigo) return;
+    setStatus("checking");
+    const supabase = createClient();
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token: codigo,
+      type: "signup",
+    });
+
+    if (error) {
+      setStatus("error");
+      setErrorMsg(traducirErrorAuth(error.message));
+      return;
+    }
+    router.push("/completar-perfil");
+  }
 
   async function handleResend() {
     if (!email) return;
@@ -61,20 +86,42 @@ export default function VerificacionContent() {
           <p className="mt-3 text-sm text-earth/70">
             {email ? (
               <>
-                Te mandamos un enlace de confirmación a{" "}
-                <strong className="text-earth">{email}</strong>. Abrilo para
-                activar tu cuenta.
+                Te mandamos un código de confirmación a{" "}
+                <strong className="text-earth">{email}</strong>. Escribilo
+                acá abajo.
               </>
             ) : (
-              "Te mandamos un enlace de confirmación a tu correo. Abrilo para activar tu cuenta."
+              "Te mandamos un código de confirmación a tu correo. Escribilo acá abajo."
             )}
           </p>
         </div>
 
         {confirmError && (
           <p className="rounded-lg border border-sand bg-beige px-4 py-3 text-sm font-medium text-earth">
-            Ese enlace ya no es válido o venció. Pedí uno nuevo abajo.
+            Ese enlace ya no es válido o venció. Escribí el código del correo, o pedí uno nuevo abajo.
           </p>
+        )}
+
+        {email && (
+          <form onSubmit={handleConfirmar} className="flex w-full flex-col items-center gap-4">
+            <input
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={8}
+              value={codigo}
+              onChange={(e) => setCodigo(e.target.value.trim())}
+              placeholder="Código de 6 dígitos"
+              className="h-12 w-full max-w-[220px] rounded-lg border border-sand bg-beige px-4 text-center text-lg tracking-[0.3em] text-earth placeholder:tracking-normal placeholder:text-earth/40 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
+            />
+            <button
+              type="submit"
+              disabled={status === "checking" || !codigo}
+              className="flex h-12 w-full items-center justify-center rounded-full bg-terracotta text-base font-semibold text-cream transition-colors hover:bg-terracotta/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:opacity-60"
+            >
+              {status === "checking" ? "Confirmando…" : "Confirmar"}
+            </button>
+          </form>
         )}
 
         {status === "sent" && (
