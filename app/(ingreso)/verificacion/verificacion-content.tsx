@@ -111,7 +111,7 @@ export default function VerificacionContent() {
               maxLength={8}
               value={codigo}
               onChange={(e) => setCodigo(e.target.value.trim())}
-              placeholder="Código de 6 dígitos"
+              placeholder="Código de confirmación"
               className="h-12 w-full max-w-[220px] rounded-lg border border-sand bg-beige px-4 text-center text-lg tracking-[0.3em] text-earth placeholder:tracking-normal placeholder:text-earth/40 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
             />
             <button

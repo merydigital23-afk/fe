@@ -19,9 +19,7 @@ function traducirErrorAuth(mensaje: string): string {
   if (m.includes("invalid") && m.includes("email") && !m.includes("send")) {
     return "Ese correo no parece válido. Revisalo y probá de nuevo.";
   }
-  // Diagnóstico temporal: mostramos el motivo técnico tal cual hasta
-  // confirmar que la configuración de correo (Hostinger SMTP) funciona.
-  return `Algo salió mal al crear la cuenta. Detalle técnico: ${mensaje}`;
+  return "Algo salió mal al crear la cuenta. Probá de nuevo en un momento.";
 }
 
 export default function RegistroPage() {
