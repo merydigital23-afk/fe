@@ -18,11 +18,18 @@ const fraunces = Fraunces({
 export const metadata: Metadata = {
   title: "CrespoTrueké",
   description: "Trueque comunitario en Crespo, Entre Ríos.",
+  other: {
+    google: "notranslate",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" className={`${dmSans.variable} ${fraunces.variable}`}>
+    <html
+      lang="es"
+      translate="no"
+      className={`${dmSans.variable} ${fraunces.variable}`}
+    >
       <body className="min-h-dvh bg-cream font-sans text-earth antialiased">
         {children}
       </body>
