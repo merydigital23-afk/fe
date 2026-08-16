@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 type Publicacion = {
@@ -16,6 +17,41 @@ type Publicacion = {
 
 const UMBRAL_PX = 100;
 
+function ModalMatch({
+  publicacion,
+  onCerrar,
+}: {
+  publicacion: Publicacion;
+  onCerrar: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-earth/60 px-6">
+      <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl bg-cream px-6 py-8 text-center shadow-lg">
+        <p className="font-display text-2xl font-semibold text-terracotta">¡Tenés un Match!</p>
+        <p className="text-sm text-earth/80">
+          A quien publicó <span className="font-semibold">&quot;{publicacion.titulo}&quot;</span>{" "}
+          también le interesó algo tuyo.
+        </p>
+        <div className="flex w-full flex-col gap-2">
+          <Link
+            href="/matches"
+            className="flex h-11 w-full items-center justify-center rounded-full bg-terracotta text-sm font-semibold text-cream transition-colors hover:bg-terracotta/90"
+          >
+            Ver mis matches
+          </Link>
+          <button
+            type="button"
+            onClick={onCerrar}
+            className="flex h-11 w-full items-center justify-center rounded-full border border-sand text-sm font-semibold text-earth transition-colors hover:bg-beige"
+          >
+            Seguir descubriendo
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function PilaSwipe({
   publicacionesIniciales,
 }: {
@@ -25,6 +61,7 @@ export function PilaSwipe({
   const [arrastre, setArrastre] = useState({ x: 0, y: 0 });
   const [saliendo, setSaliendo] = useState<"izquierda" | "derecha" | null>(null);
   const [animarRegreso, setAnimarRegreso] = useState(false);
+  const [matchPublicacion, setMatchPublicacion] = useState<Publicacion | null>(null);
   const arrastrandoRef = useRef(false);
   const inicioRef = useRef({ x: 0, y: 0 });
 
@@ -36,19 +73,68 @@ export function PilaSwipe({
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) return false;
+
     await supabase
       .from("intereses")
       .upsert(
         { usuario_id: user.id, publicacion_id: publicacionId, interesado },
         { onConflict: "usuario_id,publicacion_id" },
       );
+
+    if (!interesado) return false;
+
+    const { data: publicacion } = await supabase
+      .from("publicaciones")
+      .select("usuario_id")
+      .eq("id", publicacionId)
+      .single();
+    if (!publicacion) return false;
+    const otroUsuarioId = publicacion.usuario_id;
+
+    const { data: misPublicaciones } = await supabase
+      .from("publicaciones")
+      .select("id")
+      .eq("usuario_id", user.id);
+    const misIds = (misPublicaciones ?? []).map((p) => p.id);
+    if (misIds.length === 0) return false;
+
+    const { data: interesReciproco } = await supabase
+      .from("intereses")
+      .select("publicacion_id")
+      .eq("usuario_id", otroUsuarioId)
+      .eq("interesado", true)
+      .in("publicacion_id", misIds)
+      .limit(1)
+      .maybeSingle();
+    if (!interesReciproco) return false;
+
+    const [usuarioUno, usuarioDos] = [user.id, otroUsuarioId].sort();
+    const publicacionUno =
+      usuarioUno === user.id ? interesReciproco.publicacion_id : publicacionId;
+    const publicacionDos =
+      usuarioUno === user.id ? publicacionId : interesReciproco.publicacion_id;
+
+    const { error: matchError } = await supabase.from("matches").upsert(
+      {
+        usuario_uno: usuarioUno,
+        usuario_dos: usuarioDos,
+        publicacion_uno: publicacionUno,
+        publicacion_dos: publicacionDos,
+      },
+      { onConflict: "usuario_uno,usuario_dos" },
+    );
+
+    return !matchError;
   }
 
   function decidir(direccion: "izquierda" | "derecha") {
     if (!actual || saliendo) return;
     setSaliendo(direccion);
-    registrarSwipe(actual.id, direccion === "derecha");
+    const publicacionDecidida = actual;
+    registrarSwipe(publicacionDecidida.id, direccion === "derecha").then((huboMatch) => {
+      if (huboMatch) setMatchPublicacion(publicacionDecidida);
+    });
     setTimeout(() => {
       setPila((p) => p.slice(1));
       setSaliendo(null);
@@ -85,14 +171,19 @@ export function PilaSwipe({
 
   if (!actual) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-2 py-16 text-center">
-        <p className="font-display text-xl font-semibold text-earth">
-          Por ahora no hay más para descubrir
-        </p>
-        <p className="text-sm text-earth/60">
-          Volvé más tarde, o mirá todo junto en Explorar.
-        </p>
-      </div>
+      <>
+        <div className="flex flex-1 flex-col items-center justify-center gap-2 py-16 text-center">
+          <p className="font-display text-xl font-semibold text-earth">
+            Por ahora no hay más para descubrir
+          </p>
+          <p className="text-sm text-earth/60">
+            Volvé más tarde, o mirá todo junto en Explorar.
+          </p>
+        </div>
+        {matchPublicacion && (
+          <ModalMatch publicacion={matchPublicacion} onCerrar={() => setMatchPublicacion(null)} />
+        )}
+      </>
     );
   }
 
@@ -110,6 +201,7 @@ export function PilaSwipe({
   const opacidadPaso = Math.min(Math.max(-arrastre.x / UMBRAL_PX, 0), 1);
 
   return (
+    <>
     <div className="flex flex-1 flex-col items-center justify-center gap-6 py-6">
       <div className="relative h-[520px] w-full max-w-sm">
         {siguiente && (
@@ -201,5 +293,9 @@ export function PilaSwipe({
         </button>
       </div>
     </div>
+    {matchPublicacion && (
+      <ModalMatch publicacion={matchPublicacion} onCerrar={() => setMatchPublicacion(null)} />
+    )}
+    </>
   );
 }
