@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -90,6 +91,12 @@ export default async function MatchesPage() {
                   <span className="font-semibold">&quot;{miPublicacion?.titulo}&quot;</span> hizo
                   match con <span className="font-semibold">&quot;{suPublicacion?.titulo}&quot;</span>
                 </p>
+                <Link
+                  href={`/matches/${m.id}`}
+                  className="mt-3 inline-flex h-9 items-center justify-center rounded-full bg-terracotta px-4 text-sm font-semibold text-cream transition-colors hover:bg-terracotta/90"
+                >
+                  Chatear
+                </Link>
               </div>
             );
           })}
