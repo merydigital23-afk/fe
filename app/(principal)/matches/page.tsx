@@ -74,6 +74,7 @@ export default async function MatchesPage() {
         <div className="mt-8 flex flex-col gap-4">
           {matches.map((m) => {
             const soyUno = m.usuario_uno === user.id;
+            const otroUsuarioId = soyUno ? m.usuario_dos : m.usuario_uno;
             const miPublicacion = publicacionesPorId.get(
               soyUno ? m.publicacion_uno : m.publicacion_dos,
             );
@@ -91,12 +92,20 @@ export default async function MatchesPage() {
                   <span className="font-semibold">&quot;{miPublicacion?.titulo}&quot;</span> hizo
                   match con <span className="font-semibold">&quot;{suPublicacion?.titulo}&quot;</span>
                 </p>
-                <Link
-                  href={`/matches/${m.id}`}
-                  className="mt-3 inline-flex h-9 items-center justify-center rounded-full bg-terracotta px-4 text-sm font-semibold text-cream transition-colors hover:bg-terracotta/90"
-                >
-                  Chatear
-                </Link>
+                <div className="mt-3 flex gap-2">
+                  <Link
+                    href={`/matches/${m.id}`}
+                    className="inline-flex h-9 items-center justify-center rounded-full bg-terracotta px-4 text-sm font-semibold text-cream transition-colors hover:bg-terracotta/90"
+                  >
+                    Chatear
+                  </Link>
+                  <Link
+                    href={`/perfil/${otroUsuarioId}`}
+                    className="inline-flex h-9 items-center justify-center rounded-full border border-sand text-sm font-semibold text-earth transition-colors hover:bg-sand/40"
+                  >
+                    Ver perfil
+                  </Link>
+                </div>
               </div>
             );
           })}
