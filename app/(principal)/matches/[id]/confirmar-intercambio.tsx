@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export function ConfirmarIntercambio({
@@ -16,13 +18,23 @@ export function ConfirmarIntercambio({
   confirmadoUnoInicial: boolean;
   confirmadoDosInicial: boolean;
 }) {
+  const router = useRouter();
   const [confirmadoUno, setConfirmadoUno] = useState(confirmadoUnoInicial);
   const [confirmadoDos, setConfirmadoDos] = useState(confirmadoDosInicial);
   const [enviando, setEnviando] = useState(false);
+  const yaEstabaCompleto = useRef(confirmadoUnoInicial && confirmadoDosInicial);
+  const yaNavego = useRef(false);
 
   const soyUno = usuarioId === usuarioUno;
   const miConfirmado = soyUno ? confirmadoUno : confirmadoDos;
   const suConfirmado = soyUno ? confirmadoDos : confirmadoUno;
+
+  useEffect(() => {
+    if (confirmadoUno && confirmadoDos && !yaEstabaCompleto.current && !yaNavego.current) {
+      yaNavego.current = true;
+      router.push(`/matches/${matchId}/calificar`);
+    }
+  }, [confirmadoUno, confirmadoDos, matchId, router]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -74,7 +86,12 @@ export function ConfirmarIntercambio({
     return (
       <div className="my-4 rounded-lg border border-olive/30 bg-olive/10 px-4 py-3 text-sm">
         <p className="font-semibold text-olive">¡Intercambio confirmado por los dos!</p>
-        <p className="mt-0.5 text-earth/70">Pronto vas a poder calificar este trueque.</p>
+        <Link
+          href={`/matches/${matchId}/calificar`}
+          className="mt-1 inline-block font-semibold text-terracotta focus-visible:outline-none focus-visible:underline"
+        >
+          Calificar este trueque
+        </Link>
       </div>
     );
   }
