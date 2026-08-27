@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Chat } from "./chat";
+import { ConfirmarIntercambio } from "./confirmar-intercambio";
 
 export const metadata: Metadata = {
   title: "Chat · CrespoTrueké",
@@ -27,7 +28,9 @@ export default async function ChatPage(props: PageProps<"/matches/[id]">) {
 
   const { data: match } = await supabase
     .from("matches")
-    .select("id, usuario_uno, usuario_dos, publicacion_uno, publicacion_dos")
+    .select(
+      "id, usuario_uno, usuario_dos, publicacion_uno, publicacion_dos, confirmado_uno, confirmado_dos",
+    )
     .eq("id", id)
     .maybeSingle();
 
@@ -84,6 +87,14 @@ export default async function ChatPage(props: PageProps<"/matches/[id]">) {
           </p>
         </div>
       </div>
+
+      <ConfirmarIntercambio
+        matchId={id}
+        usuarioId={user.id}
+        usuarioUno={match.usuario_uno}
+        confirmadoUnoInicial={match.confirmado_uno}
+        confirmadoDosInicial={match.confirmado_dos}
+      />
 
       <Chat matchId={id} usuarioId={user.id} mensajesIniciales={mensajes ?? []} />
     </main>
