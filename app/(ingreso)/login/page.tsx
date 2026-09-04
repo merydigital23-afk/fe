@@ -18,7 +18,7 @@ function traducirErrorLogin(mensaje: string): string {
 
 export default function LoginPage() {
   const router = useRouter();
-  const [status, setStatus] = useState<"idle" | "loading" | "error" | "adentro">("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -52,7 +52,7 @@ export default function LoginPage() {
       return;
     }
 
-    setStatus("adentro");
+    router.push("/perfil");
   }
 
   return (
@@ -78,84 +78,70 @@ export default function LoginPage() {
       </Link>
 
       <div className="flex flex-1 flex-col justify-center gap-8 py-6">
-        {status === "adentro" ? (
-          <div className="flex flex-col items-center gap-3 rounded-lg border border-sand bg-beige px-5 py-8 text-center">
-            <p className="font-display text-2xl font-semibold text-olive">
-              ¡Iniciaste sesión!
-            </p>
-            <p className="text-sm text-earth/80">
-              Tu cuenta y tu perfil ya están listos. Las próximas pantallas
-              (Inicio, Explorar) todavía no están construidas.
-            </p>
+        <div>
+          <h1 className="font-display text-3xl font-semibold text-earth">
+            Iniciá sesión
+          </h1>
+          <p className="mt-2 text-sm text-earth/70">
+            Entrá con tu correo y contraseña.
+          </p>
+        </div>
+
+        {status === "error" && (
+          <div className="rounded-lg border border-sand bg-beige px-4 py-3 text-sm font-medium text-earth">
+            {errorMsg}
           </div>
-        ) : (
-          <>
-            <div>
-              <h1 className="font-display text-3xl font-semibold text-earth">
-                Iniciá sesión
-              </h1>
-              <p className="mt-2 text-sm text-earth/70">
-                Entrá con tu correo y contraseña.
-              </p>
-            </div>
-
-            {status === "error" && (
-              <div className="rounded-lg border border-sand bg-beige px-4 py-3 text-sm font-medium text-earth">
-                {errorMsg}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="email" className="text-sm font-medium text-earth">
-                  Correo electrónico
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  autoComplete="email"
-                  placeholder="vos@ejemplo.com"
-                  className="h-12 rounded-lg border border-sand bg-beige px-4 text-base text-earth placeholder:text-earth/40 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="password" className="text-sm font-medium text-earth">
-                  Contraseña
-                </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  autoComplete="current-password"
-                  placeholder="Tu contraseña"
-                  className="h-12 rounded-lg border border-sand bg-beige px-4 text-base text-earth placeholder:text-earth/40 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={status === "loading"}
-                className="mt-2 flex h-12 w-full items-center justify-center rounded-full bg-terracotta text-base font-semibold text-cream transition-colors hover:bg-terracotta/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:opacity-60"
-              >
-                {status === "loading" ? "Ingresando…" : "Iniciar sesión"}
-              </button>
-            </form>
-
-            <p className="text-center text-sm text-earth/60">
-              ¿No tenés cuenta?{" "}
-              <Link
-                href="/registro"
-                className="font-semibold text-terracotta focus-visible:outline-none focus-visible:underline"
-              >
-                Crear cuenta
-              </Link>
-            </p>
-          </>
         )}
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="email" className="text-sm font-medium text-earth">
+              Correo electrónico
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              autoComplete="email"
+              placeholder="vos@ejemplo.com"
+              className="h-12 rounded-lg border border-sand bg-beige px-4 text-base text-earth placeholder:text-earth/40 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="password" className="text-sm font-medium text-earth">
+              Contraseña
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              autoComplete="current-password"
+              placeholder="Tu contraseña"
+              className="h-12 rounded-lg border border-sand bg-beige px-4 text-base text-earth placeholder:text-earth/40 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={status === "loading"}
+            className="mt-2 flex h-12 w-full items-center justify-center rounded-full bg-terracotta text-base font-semibold text-cream transition-colors hover:bg-terracotta/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:opacity-60"
+          >
+            {status === "loading" ? "Ingresando…" : "Iniciar sesión"}
+          </button>
+        </form>
+
+        <p className="text-center text-sm text-earth/60">
+          ¿No tenés cuenta?{" "}
+          <Link
+            href="/registro"
+            className="font-semibold text-terracotta focus-visible:outline-none focus-visible:underline"
+          >
+            Crear cuenta
+          </Link>
+        </p>
       </div>
     </main>
   );

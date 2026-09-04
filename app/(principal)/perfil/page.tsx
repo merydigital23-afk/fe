@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { TarjetaPublicacion } from "../explorar/tarjeta-publicacion";
+import { CerrarSesion } from "./cerrar-sesion";
 
 export const metadata: Metadata = {
   title: "Mi perfil · CrespoTrueké",
@@ -73,12 +74,15 @@ export default async function PerfilPage() {
           <p className="max-w-xs text-sm text-earth/80">{usuario.biografia}</p>
         )}
 
-        <Link
-          href="/completar-perfil"
-          className="text-sm font-semibold text-terracotta focus-visible:outline-none focus-visible:underline"
-        >
-          Editar perfil
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link
+            href="/completar-perfil"
+            className="text-sm font-semibold text-terracotta focus-visible:outline-none focus-visible:underline"
+          >
+            Editar perfil
+          </Link>
+          <CerrarSesion />
+        </div>
       </div>
 
       <div className="mt-10">
