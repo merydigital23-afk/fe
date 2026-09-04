@@ -174,6 +174,7 @@ export function PilaSwipe({
             )}
             <Link
               href={`/publicacion/${actual.id}`}
+              onPointerDown={(e) => e.stopPropagation()}
               className="mt-1 self-start text-xs font-semibold text-terracotta focus-visible:outline-none focus-visible:underline"
             >
               Ver publicación completa
