@@ -2,7 +2,8 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { registrarInteres } from "@/lib/intereses";
+import { ModalMatch } from "../_components/modal-match";
 
 type Publicacion = {
   id: string;
@@ -16,41 +17,6 @@ type Publicacion = {
 };
 
 const UMBRAL_PX = 100;
-
-function ModalMatch({
-  publicacion,
-  onCerrar,
-}: {
-  publicacion: Publicacion;
-  onCerrar: () => void;
-}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-earth/60 px-6">
-      <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl bg-cream px-6 py-8 text-center shadow-lg">
-        <p className="font-display text-2xl font-semibold text-terracotta">¡Tenés un Match!</p>
-        <p className="text-sm text-earth/80">
-          A quien publicó <span className="font-semibold">&quot;{publicacion.titulo}&quot;</span>{" "}
-          también le interesó algo tuyo.
-        </p>
-        <div className="flex w-full flex-col gap-2">
-          <Link
-            href="/matches"
-            className="flex h-11 w-full items-center justify-center rounded-full bg-terracotta text-sm font-semibold text-cream transition-colors hover:bg-terracotta/90"
-          >
-            Ver mis matches
-          </Link>
-          <button
-            type="button"
-            onClick={onCerrar}
-            className="flex h-11 w-full items-center justify-center rounded-full border border-sand text-sm font-semibold text-earth transition-colors hover:bg-beige"
-          >
-            Seguir descubriendo
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export function PilaSwipe({
   publicacionesIniciales,
@@ -68,71 +34,11 @@ export function PilaSwipe({
   const actual = pila[0];
   const siguiente = pila[1];
 
-  async function registrarSwipe(publicacionId: string, interesado: boolean) {
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return false;
-
-    await supabase
-      .from("intereses")
-      .upsert(
-        { usuario_id: user.id, publicacion_id: publicacionId, interesado },
-        { onConflict: "usuario_id,publicacion_id" },
-      );
-
-    if (!interesado) return false;
-
-    const { data: publicacion } = await supabase
-      .from("publicaciones")
-      .select("usuario_id")
-      .eq("id", publicacionId)
-      .single();
-    if (!publicacion) return false;
-    const otroUsuarioId = publicacion.usuario_id;
-
-    const { data: misPublicaciones } = await supabase
-      .from("publicaciones")
-      .select("id")
-      .eq("usuario_id", user.id);
-    const misIds = (misPublicaciones ?? []).map((p) => p.id);
-    if (misIds.length === 0) return false;
-
-    const { data: interesReciproco } = await supabase
-      .from("intereses")
-      .select("publicacion_id")
-      .eq("usuario_id", otroUsuarioId)
-      .eq("interesado", true)
-      .in("publicacion_id", misIds)
-      .limit(1)
-      .maybeSingle();
-    if (!interesReciproco) return false;
-
-    const [usuarioUno, usuarioDos] = [user.id, otroUsuarioId].sort();
-    const publicacionUno =
-      usuarioUno === user.id ? interesReciproco.publicacion_id : publicacionId;
-    const publicacionDos =
-      usuarioUno === user.id ? publicacionId : interesReciproco.publicacion_id;
-
-    const { error: matchError } = await supabase.from("matches").upsert(
-      {
-        usuario_uno: usuarioUno,
-        usuario_dos: usuarioDos,
-        publicacion_uno: publicacionUno,
-        publicacion_dos: publicacionDos,
-      },
-      { onConflict: "usuario_uno,usuario_dos" },
-    );
-
-    return !matchError;
-  }
-
   function decidir(direccion: "izquierda" | "derecha") {
     if (!actual || saliendo) return;
     setSaliendo(direccion);
     const publicacionDecidida = actual;
-    registrarSwipe(publicacionDecidida.id, direccion === "derecha").then((huboMatch) => {
+    registrarInteres(publicacionDecidida.id, direccion === "derecha").then((huboMatch) => {
       if (huboMatch) setMatchPublicacion(publicacionDecidida);
     });
     setTimeout(() => {
@@ -181,7 +87,7 @@ export function PilaSwipe({
           </p>
         </div>
         {matchPublicacion && (
-          <ModalMatch publicacion={matchPublicacion} onCerrar={() => setMatchPublicacion(null)} />
+          <ModalMatch titulo={matchPublicacion.titulo} onCerrar={() => setMatchPublicacion(null)} />
         )}
       </>
     );
@@ -266,6 +172,12 @@ export function PilaSwipe({
                 {actual.acepta_a_cambio}
               </p>
             )}
+            <Link
+              href={`/publicacion/${actual.id}`}
+              className="mt-1 self-start text-xs font-semibold text-terracotta focus-visible:outline-none focus-visible:underline"
+            >
+              Ver publicación completa
+            </Link>
           </div>
         </div>
       </div>
@@ -294,7 +206,7 @@ export function PilaSwipe({
       </div>
     </div>
     {matchPublicacion && (
-      <ModalMatch publicacion={matchPublicacion} onCerrar={() => setMatchPublicacion(null)} />
+      <ModalMatch titulo={matchPublicacion.titulo} onCerrar={() => setMatchPublicacion(null)} />
     )}
     </>
   );

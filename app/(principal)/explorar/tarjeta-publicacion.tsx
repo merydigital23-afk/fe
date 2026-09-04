@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type Publicacion = {
   id: string;
   tipo: string;
@@ -12,7 +14,10 @@ export function TarjetaPublicacion({ publicacion }: { publicacion: Publicacion }
   const foto = publicacion.fotos?.[0];
 
   return (
-    <article className="overflow-hidden rounded-lg border border-sand bg-beige">
+    <Link
+      href={`/publicacion/${publicacion.id}`}
+      className="block overflow-hidden rounded-lg border border-sand bg-beige transition-colors hover:border-terracotta/50"
+    >
       <div className="aspect-square bg-sand/40">
         {foto ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -53,6 +58,6 @@ export function TarjetaPublicacion({ publicacion }: { publicacion: Publicacion }
           {publicacion.categoria} · {publicacion.zona}
         </p>
       </div>
-    </article>
+    </Link>
   );
 }
